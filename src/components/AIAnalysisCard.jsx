@@ -14,7 +14,7 @@ export default function AIAnalysisCard({ complaint }) {
     <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-base font-semibold text-slate-900">
-          <BrainCircuit className="h-5 w-5 text-blue-600" />
+          <BrainCircuit className="h-5 w-5 text-red-600" />
           AI analysis
         </div>
         {ai.is_uncertain ? (
@@ -56,7 +56,7 @@ export default function AIAnalysisCard({ complaint }) {
 
       {ai.possible_duplicate_of ? (
         <div className="mt-4 text-sm text-slate-600">
-          Possible duplicate of <a className="font-semibold text-blue-700 hover:text-blue-800" href={`/complaints/${ai.possible_duplicate_of}`}>#{ai.possible_duplicate_of}</a>
+          Possible duplicate of <a className="font-semibold text-red-700 hover:text-red-800" href={`/complaints/${ai.possible_duplicate_of}`}>#{ai.possible_duplicate_of}</a>
         </div>
       ) : null}
     </div>

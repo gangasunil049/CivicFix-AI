@@ -1,19 +1,34 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
 import ComplaintDetailPage from './pages/ComplaintDetailPage'
 import ComplaintsPage from './pages/ComplaintsPage'
-import HomePage from './pages/HomePage'
 import ReportIssuePage from './pages/ReportIssuePage'
+import ScrollSitePage from './pages/ScrollSitePage'
+
+function ScrollToSection() {
+  const { pathname, hash } = useLocation()
+
+  useEffect(() => {
+    if (!hash) return
+
+    document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [pathname, hash])
+
+  return null
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-100 text-slate-800">
+      <div className="min-h-screen bg-[#f3f1eb] text-slate-800">
         <Navbar />
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <ScrollToSection />
+        <main className="w-full px-0 py-0">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<ScrollSitePage />} />
+            <Route path="/help" element={<Navigate to="/#help-section" replace />} />
             <Route path="/report" element={<ReportIssuePage />} />
             <Route path="/complaints" element={<ComplaintsPage />} />
             <Route path="/complaints/:id" element={<ComplaintDetailPage />} />

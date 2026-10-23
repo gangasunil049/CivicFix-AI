@@ -2,8 +2,8 @@ import { ImageIcon, LoaderCircle, Send, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { createComplaint } from '../api/complaints'
+import AbstractPageBackground from '../components/AbstractPageBackground'
 import AIAnalysisCard from '../components/AIAnalysisCard'
-import MapPicker from '../components/MapPicker'
 
 const issueOptions = [
   { value: 'pothole', label: 'Pothole' },
@@ -97,7 +97,8 @@ export default function ReportIssuePage() {
 
   if (submittedComplaint) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 pb-10">
+      <AbstractPageBackground>
+        <div className="mx-auto max-w-4xl space-y-6 pb-10">
         <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
           <div className="flex items-center gap-3 text-emerald-800">
             <div className="rounded-full bg-emerald-100 p-2">
@@ -137,14 +138,16 @@ export default function ReportIssuePage() {
 
           <AIAnalysisCard complaint={submittedComplaint} />
         </div>
-      </div>
+        </div>
+      </AbstractPageBackground>
     )
   }
 
   return (
-    <div className="mx-auto max-w-4xl pb-10">
+    <AbstractPageBackground>
+      <div className="mx-auto max-w-4xl pb-10">
       <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-700">Report issue</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#b88100]">Report issue</p>
         <h1 className="mt-2 text-3xl font-black text-slate-900">Share a civic problem</h1>
       </div>
 
@@ -159,7 +162,7 @@ export default function ReportIssuePage() {
               name="issue_type"
               value={form.issue_type}
               onChange={handleInputChange}
-              className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 focus:border-[#ffbf07] focus:outline-none focus:ring-2 focus:ring-[#ffbf07]/30"
             >
               {issueOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -167,7 +170,7 @@ export default function ReportIssuePage() {
             </select>
           </div>
 
-          <div className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-700 ring-1 ring-blue-100">
+          <div className="rounded-2xl bg-[#fff8df] p-4 text-sm text-[#8a6100] ring-1 ring-[#ffbf07]/40">
             <div className="font-semibold">AI category</div>
             <div className="mt-1 text-base font-bold">{activeIssueLabel}</div>
           </div>
@@ -184,7 +187,7 @@ export default function ReportIssuePage() {
             value={form.description}
             onChange={handleInputChange}
             placeholder="Describe what is wrong, how bad it is, and any information that helps the team act quickly."
-            className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#ffbf07] focus:outline-none focus:ring-2 focus:ring-[#ffbf07]/30"
           />
           {errors.description ? <p className="mt-1 text-sm text-red-600">{errors.description}</p> : null}
         </div>
@@ -192,7 +195,7 @@ export default function ReportIssuePage() {
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Photo upload</label>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#ffbf07] hover:bg-[#fff8df] hover:text-slate-900">
               <ImageIcon className="h-4 w-4" />
               Add photo
               <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
@@ -204,24 +207,27 @@ export default function ReportIssuePage() {
           </div>
         </div>
 
-        <MapPicker
-          latitude={form.latitude}
-          longitude={form.longitude}
-          address={form.address}
-          onPositionChange={handleLocationChange}
-          onAddressChange={(value) => {
-            setForm((current) => ({ ...current, address: value }))
-            setErrors((current) => ({ ...current, address: '' }))
-          }}
-        />
-
-        {errors.address ? <p className="text-sm text-red-600">{errors.address}</p> : null}
+        <div>
+          <label htmlFor="address" className="mb-2 block text-sm font-medium text-slate-700">
+            Location
+          </label>
+          <input
+            id="address"
+            name="address"
+            type="text"
+            value={form.address}
+            onChange={handleInputChange}
+            placeholder="Enter your address or nearby landmark"
+            className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#ffbf07] focus:outline-none focus:ring-2 focus:ring-[#ffbf07]/30"
+          />
+          {errors.address ? <p className="mt-1 text-sm text-red-600">{errors.address}</p> : null}
+        </div>
         {errors.submit ? <div className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">{errors.submit}</div> : null}
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+          className="inline-flex items-center gap-2 rounded-full bg-[#ffbf07] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-[#ffd04a] disabled:cursor-not-allowed disabled:bg-[#f3d77b]"
         >
           {isSubmitting ? (
             <>
@@ -236,6 +242,7 @@ export default function ReportIssuePage() {
           )}
         </button>
       </form>
-    </div>
+      </div>
+    </AbstractPageBackground>
   )
 }

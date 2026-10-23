@@ -1,48 +1,45 @@
-import { Menu, MessageSquareText, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 const navItems = [
-  { to: '/', label: 'Home' },
-  { to: '/report', label: 'Report Issue' },
-  { to: '/complaints', label: 'All Complaints' }
+  { to: '/#home-section', section: 'home-section', label: 'Home' },
+  { to: '/#report-section', section: 'report-section', label: 'Report Issue' },
+  { to: '/#complaints-section', section: 'complaints-section', label: 'All Complaints' },
+  { to: '/#help-section', section: 'help-section', label: 'Help' }
 ]
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { pathname, hash } = useLocation()
+
+  const isActive = (section) => pathname === '/' && (hash ? hash === `#${section}` : section === 'home-section')
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-lg">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 to-cyan-500 text-white shadow-sm">
-            <MessageSquareText className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-lg font-bold tracking-tight text-slate-900">CivicFix AI</div>
-            <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">Civic Issue Platform</div>
-          </div>
+    <header className="sticky top-0 z-50 bg-[#0d1116] text-white shadow-sm">
+      <nav className="mx-auto flex max-w-[1360px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <Link to="/" className="flex shrink-0 items-center" aria-label="CivicFix home">
+          <img src="/civicfix-logo.svg" alt="CivicFix" className="h-10 w-[180px] object-contain" />
         </Link>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-8 md:flex">
           {navItems.map((item) => (
-            <NavLink
+            <Link
               key={item.to}
               to={item.to}
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm font-medium transition ${
-                  isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`
-              }
+              className={`relative px-1 py-2 text-sm font-medium transition ${
+                isActive(item.section) ? 'text-[#ffbf07]' : 'text-white/80 hover:text-white'
+              }`}
             >
               {item.label}
-            </NavLink>
+              {isActive(item.section) ? <span className="absolute inset-x-0 -bottom-1 h-0.5 rounded-full bg-[#ffbf07]" /> : null}
+            </Link>
           ))}
         </div>
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-full border border-slate-200 p-2 text-slate-700 md:hidden"
+          className="inline-flex items-center justify-center rounded-full border border-white/10 p-2 text-white md:hidden"
           onClick={() => setMobileOpen((current) => !current)}
           aria-label="Toggle navigation"
         >
@@ -51,21 +48,19 @@ export default function Navbar() {
       </nav>
 
       {mobileOpen ? (
-        <div className="border-t border-slate-200 bg-white md:hidden">
-          <div className="mx-auto flex max-w-7xl flex-col px-4 py-3">
+        <div className="border-t border-white/10 bg-[#0d1116] md:hidden">
+          <div className="mx-auto flex max-w-[1360px] flex-col px-4 py-3">
             {navItems.map((item) => (
-              <NavLink
+              <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `rounded-xl px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-600'
-                  }`
-                }
+                className={`rounded-xl px-3 py-2 text-sm font-medium ${
+                  isActive(item.section) ? 'bg-white/5 text-[#ffbf07]' : 'text-white/80'
+                }`}
               >
                 {item.label}
-              </NavLink>
+              </Link>
             ))}
           </div>
         </div>

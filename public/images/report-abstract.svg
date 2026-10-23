@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="0.55" stop-color="#151f32"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#33445f" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#33445f" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#33445f" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#night)"/>
+  <ellipse cx="800" cy="640" rx="690" ry="300" fill="url(#haze)"/>
+  <g fill="#172236" fill-opacity="0.74" stroke="#31415a" stroke-opacity="0.72" stroke-width="2">
+    <path d="M0 610h120V420h130v190h72V350h145v260h88V465h118v145h94V300h154v310h86V405h128v205h102V365h147v245h92V470h124v140h110v390H0Z"/>
+  </g>
+  <g fill="none" stroke="#52627a" stroke-opacity="0.48" stroke-width="2">
+    <path d="M120 420v190m32-156v14m30-14v14m-30 24v14m30-14v14m-30 24v14m30-14v14m-30 24v14m30-14v14"/>
+    <path d="M322 350v260m35-218v16m34-16v16m35-16v16m-69 30v16m34-16v16m35-16v16m-69 30v16m34-16v16m35-16v16m-69 30v16m34-16v16m35-16v16"/>
+    <path d="M573 465v145m30-112v15m28-15v15m-58 24v15m30-15v15m28-15v15m-58 24v15m30-15v15m28-15v15"/>
+    <path d="M779 300v310m35-266v18m36-18v18m36-18v18m-72 32v18m36-18v18m36-18v18m-72 32v18m36-18v18m36-18v18m-72 32v18m36-18v18m36-18v18m-72 32v18m36-18v18m36-18v18"/>
+    <path d="M1019 405v205m32-161v15m32-15v15m-64 27v15m32-15v15m32-15v15m-64 27v15m32-15v15m32-15v15m-64 27v15m32-15v15m32-15v15"/>
+    <path d="M1179 365v245m34-203v16m34-16v16m34-16v16m-68 30v16m34-16v16m34-16v16m-68 30v16m34-16v16m34-16v16m-68 30v16m34-16v16m34-16v16"/>
+    <path d="M1468 470v140m28-108v14m28-14v14m-56 25v14m28-14v14m28-14v14m-56 25v14m28-14v14m28-14v14"/>
+    <path d="M0 610h1600M0 630h1600" stroke="#40516b" stroke-opacity="0.5"/>
+    <path d="M0 220h310m920 0h370M90 252h185m1090 0h145" stroke="#53627a" stroke-opacity="0.16"/>
+  </g>
+  <path d="M0 748c230-78 398-68 625 0s404 80 610 6 279-90 365-66v312H0Z" fill="#0d1422" fill-opacity="0.4"/>
+</svg>

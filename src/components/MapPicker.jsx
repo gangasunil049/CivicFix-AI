@@ -68,7 +68,7 @@ export default function MapPicker({ latitude, longitude, address, onPositionChan
         <button
           type="button"
           onClick={handleUseCurrentLocation}
-          className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+          className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
         >
           <LocateFixed className="h-3.5 w-3.5" />
           Use my current location
@@ -94,7 +94,7 @@ export default function MapPicker({ latitude, longitude, address, onPositionChan
           id="address"
           value={address}
           onChange={(event) => onAddressChange(event.target.value)}
-          className="w-full rounded-2xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-2xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100"
           placeholder="Enter a nearby landmark or street address"
         />
       </div>

@@ -32,7 +32,7 @@ export default function ComplaintCard({ complaint }) {
 
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+            <span className="rounded-full bg-[#fff8df] px-2.5 py-1 text-[11px] font-semibold text-[#8a6100]">
               {categoryMeta[complaint.issue_type] || 'Other'}
             </span>
             <StatusBadge status={complaint.status} />

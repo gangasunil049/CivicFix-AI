@@ -1,152 +1,119 @@
-import { ArrowRight, CheckCircle2, MapPinned, MessageSquareText, ShieldCheck } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ArrowRight, FileText, Headphones } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { getComplaints } from '../api/complaints'
-
-const steps = [
-  { title: 'Report', description: 'Share the issue, location and photo in a minute.', icon: MessageSquareText },
-  { title: 'AI analyses', description: 'Our model classifies and prioritises the report.', icon: ShieldCheck },
-  { title: 'Authorities act', description: 'Ward teams and departments receive a clear action brief.', icon: MapPinned },
-  { title: 'Track progress', description: 'See updates, status changes and resolution timelines.', icon: CheckCircle2 }
-]
-
 export default function HomePage() {
-  const [complaints, setComplaints] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let active = true
-
-    const loadComplaints = async () => {
-      try {
-        setLoading(true)
-        const data = await getComplaints()
-        if (active) {
-          setComplaints(data)
-          setError('')
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(loadError.message || 'Unable to load platform data.')
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadComplaints()
-
-    return () => {
-      active = false
-    }
-  }, [])
-
-  const stats = useMemo(() => {
-    const total = complaints.length
-    const resolved = complaints.filter((item) => item.status === 'Resolved').length
-    const inProgress = complaints.filter((item) => item.status === 'In Progress' || item.status === 'Under Review').length
-
-    return { total, resolved, inProgress }
-  }, [complaints])
-
   return (
-    <div className="space-y-12 pb-12">
-      <section className="rounded-[2rem] bg-gradient-to-br from-slate-900 via-blue-950 to-blue-800 p-6 text-white shadow-xl sm:p-8 lg:p-12">
-        <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-blue-100">
-              Better public services, faster
-            </span>
-            <h1 className="mt-5 max-w-xl text-4xl font-black tracking-tight sm:text-5xl">
-              Report civic problems. Get them fixed faster.
-            </h1>
-            <p className="mt-4 max-w-lg text-base text-slate-200 sm:text-lg">
-              Citizens can report potholes, drains, garbage, streetlights and leaks in minutes, and the platform triages them with AI guidance for city teams.
-            </p>
+    <div className="relative isolate min-h-[calc(100vh-56px)] space-y-0 pb-16">
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/civicfix-homepage.jpg')" }}
+      />
+     
+<section className="relative isolate z-10 min-h-[660px] w-full overflow-hidden bg-transparent shadow-xl">
+  <div className="relative z-10 mx-auto flex min-h-[660px] w-full max-w-[1280px] flex-col justify-center px-6 py-16 sm:px-10 lg:px-12">
+    <div className="w-full">
+      <div className="mb-7 flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#ffbf07]">
+        <span>Cleaner Streets</span>
+        <span className="text-white/60">|</span>
+        <span>Safer Communities</span>
+        <span className="text-white/60">|</span>
+        <span>A Better Tomorrow</span>
+      </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link
-                to="/report"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50"
-              >
-                Report an Issue
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/complaints" className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-                View reports
-              </Link>
+      <h1 className="max-w-4xl text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+        Together for a
+        <span className="mt-2 block text-[#ffbf07]">
+          Better, Safer City
+        </span>
+      </h1>
+
+      <p className="mt-6 max-w-xl text-base leading-7 text-white/85 sm:text-lg">
+        Report civic issues like potholes, fallen trees, broken streetlights
+        and more. Help us make our city cleaner, safer and better for everyone.
+      </p>
+
+      {/* Large action cards */}
+      <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
+        <Link
+          to="/#report-section"
+          className="group flex min-h-[150px] items-center justify-between gap-4 rounded-2xl bg-[#ffbf07] p-5 text-slate-900 shadow-xl transition duration-300 hover:-translate-y-1 hover:bg-[#ffd04a] sm:p-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-[#ffbf07]">
+              <FileText className="h-7 w-7" />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-extrabold sm:text-2xl">
+                Report Issue
+              </h2>
+              <p className="mt-2 text-sm text-slate-800">
+                Spot a problem? Let us know.
+              </p>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-sm">
-            <div className="rounded-[1.5rem] bg-white p-5 text-slate-900 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Today</div>
-                  <div className="mt-2 text-3xl font-black text-slate-900">{stats.total || 0}</div>
-                </div>
-                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
-                  <CheckCircle2 className="h-8 w-8" />
-                </div>
-              </div>
+          <ArrowRight className="h-6 w-6 shrink-0 transition-transform group-hover:translate-x-2" />
+        </Link>
 
-              <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-2xl bg-slate-100 p-3">
-                  <div className="text-slate-500">Resolved</div>
-                  <div className="mt-1 text-xl font-bold text-slate-900">{stats.resolved}</div>
-                </div>
-                <div className="rounded-2xl bg-slate-100 p-3">
-                  <div className="text-slate-500">In progress</div>
-                  <div className="mt-1 text-xl font-bold text-slate-900">{stats.inProgress}</div>
-                </div>
-              </div>
+        <Link
+          to="/#help-section"
+          className="group flex min-h-[150px] items-center justify-between gap-4 rounded-2xl border border-white/20 bg-slate-950/90 p-5 text-white shadow-xl transition duration-300 hover:-translate-y-1 hover:bg-slate-900 sm:p-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+              <Headphones className="h-7 w-7" />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-extrabold sm:text-2xl">
+                Help Desk
+              </h2>
+              <p className="mt-2 text-sm text-slate-300">
+                Get support or track your complaint.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="text-sm text-slate-500">Total reports</div>
-          <div className="mt-3 text-3xl font-black text-slate-900">{loading ? '—' : stats.total}</div>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="text-sm text-slate-500">Resolved</div>
-          <div className="mt-3 text-3xl font-black text-emerald-600">{loading ? '—' : stats.resolved}</div>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="text-sm text-slate-500">In progress</div>
-          <div className="mt-3 text-3xl font-black text-amber-600">{loading ? '—' : stats.inProgress}</div>
-        </div>
-      </section>
+          <ArrowRight className="h-6 w-6 shrink-0 transition-transform group-hover:translate-x-2" />
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <section>
-        <div className="mb-6 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">How it works</p>
-          <h2 className="mt-2 text-3xl font-bold text-slate-900">From issue to action</h2>
-        </div>
+<section className="relative z-10 flex min-h-[420px] items-center px-6 py-20 sm:px-10 lg:px-12">
+  <div className="mx-auto w-full max-w-[1280px]">
+    <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#ffbf07] [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
+      How CivicFix works
+    </p>
+    <h2 className="mt-3 max-w-3xl text-3xl font-black text-white [text-shadow:0_2px_5px_rgba(0,0,0,0.85)] sm:text-4xl">
+      Small actions. Safer streets.
+    </h2>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          {steps.map(({ title, description, icon: Icon }, index) => (
-            <div key={title} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Step {index + 1}</div>
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+    <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-10">
+      <article className="border-t border-white/60 pt-4">
+        <p className="text-sm font-bold text-[#ffbf07] [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">01 / REPORT</p>
+        <p className="mt-3 max-w-sm text-base leading-7 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
+          Share the issue, its location, and a photo so your community can act on it.
+        </p>
+      </article>
+      <article className="border-t border-white/60 pt-4">
+        <p className="text-sm font-bold text-[#ffbf07] [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">02 / REVIEW</p>
+        <p className="mt-3 max-w-sm text-base leading-7 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
+          Your report is assessed and shared with the team responsible for the area.
+        </p>
+      </article>
+      <article className="border-t border-white/60 pt-4">
+        <p className="text-sm font-bold text-[#ffbf07] [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">03 / RESOLVE</p>
+        <p className="mt-3 max-w-sm text-base leading-7 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
+          Follow progress as local issues move toward a safer, cleaner resolution.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
 
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
-      ) : null}
     </div>
   )
 }
