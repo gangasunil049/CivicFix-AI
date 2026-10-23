@@ -1,5 +1,13 @@
-import { ImageIcon, LoaderCircle, Send, Sparkles } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  Camera,
+  ImageIcon,
+  LoaderCircle,
+  MapPin,
+  Send,
+  Sparkles,
+  RefreshCw
+} from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { createComplaint } from '../api/complaints'
 import AbstractPageBackground from '../components/AbstractPageBackground'
@@ -29,6 +37,21 @@ export default function ReportIssuePage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedComplaint, setSubmittedComplaint] = useState(null)
+  
+const videoRef = useRef(null)
+const streamRef = useRef(null)
+
+const [cameraActive, setCameraActive] = useState(false)
+const [cameraError, setCameraError] = useState('')
+const [photoLocation, setPhotoLocation] = useState(null)
+const [photoCapturedAt, setPhotoCapturedAt] = useState(null)
+
+useEffect(() => {
+  return () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+  }
+}, [])
+
 
   const activeIssueLabel = useMemo(
     () => issueOptions.find((option) => option.value === form.issue_type)?.label || 'Issue',
@@ -59,17 +82,104 @@ export default function ReportIssuePage() {
     setForm((current) => ({ ...current, latitude, longitude }))
     setErrors((current) => ({ ...current, latitude: '', longitude: '' }))
   }
+  
+  
+const startCamera = async () => {
+  setCameraError('')
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    setForm((current) => ({
-      ...current,
-      photo: file,
-      photo_url: URL.createObjectURL(file)
-    }))
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setCameraError('Camera access requires HTTPS or localhost.')
+    return
   }
+
+  try {
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false
+    })
+
+    streamRef.current = stream
+    setCameraActive(true)
+  } catch {
+    setCameraError('Could not access the camera. Please allow camera permission.')
+  }
+}
+
+useEffect(() => {
+  if (cameraActive && videoRef.current && streamRef.current) {
+    videoRef.current.srcObject = streamRef.current
+
+    videoRef.current.play().catch(() => {
+      setCameraError('Could not start the camera preview.')
+    })
+  }
+}, [cameraActive])
+
+const capturePhoto = () => {
+  const video = videoRef.current
+
+  if (!video || !video.videoWidth || !video.videoHeight) {
+    setCameraError('Please wait for the camera preview to load.')
+    return
+  }
+
+  setCameraError('')
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+
+      const context = canvas.getContext('2d')
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setCameraError('Photo capture failed. Please try again.')
+          return
+        }
+
+        const capturedAt = new Date().toISOString()
+        const photo = new File([blob], `civicfix-${Date.now()}.jpg`, {
+          type: 'image/jpeg'
+        })
+        const photoUrl = URL.createObjectURL(photo)
+
+        setForm((current) => ({
+          ...current,
+          photo,
+          photo_url: photoUrl,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        }))
+
+        setPhotoLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        })
+
+        setPhotoCapturedAt(capturedAt)
+        setCameraActive(false)
+
+        streamRef.current?.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
+      }, 'image/jpeg', 0.9)
+    },
+    () => {
+      setCameraError('GPS permission is required to capture a geotagged photo.')
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+  )
+}
+
 
   const handleSubmit = async (event) => {
     event.preventDefault()
