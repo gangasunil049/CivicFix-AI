@@ -152,7 +152,7 @@ export default function ComplaintsPage() {
 
       {filteredComplaints.length ? (
         <div
-          className="mx-auto w-full max-w-4xl"
+          className="mx-auto w-full max-w-[720px]"
           role="region"
           aria-label="Community complaints carousel"
           onMouseEnter={() => setCarouselPaused(true)}
@@ -174,14 +174,14 @@ export default function ComplaintsPage() {
               {filteredComplaints.map((complaint, index) => (
                 <div
                   key={complaint.id}
-                  className="w-full shrink-0"
+                  className={`w-full shrink-0 ${index === activeIndex ? 'complaint-slide-enter' : ''}`}
                   role="group"
                   aria-roledescription="slide"
                   aria-label={`Complaint ${index + 1} of ${filteredComplaints.length}`}
                   aria-hidden={index !== activeIndex}
                   inert={index !== activeIndex}
                 >
-                  <ComplaintCard complaint={complaint} />
+                  <ComplaintCard complaint={complaint} featured />
                 </div>
               ))}
             </div>

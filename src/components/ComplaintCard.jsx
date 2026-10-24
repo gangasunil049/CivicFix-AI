@@ -29,16 +29,23 @@ function formatDate(value) {
   })
 }
 
-export default function ComplaintCard({ complaint }) {
+export default function ComplaintCard({ complaint, featured = false }) {
   const categoryPhoto = categoryPhotos[complaint.issue_type] || categoryPhotos.other
 
   return (
-    <Link to={`/complaints/${complaint.id}`} className="block rounded-3xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex gap-3">
+    <Link
+      to={`/complaints/${complaint.id}`}
+      className={`block rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+        featured
+          ? 'mx-auto flex aspect-square w-full max-w-[680px] flex-col gap-3 p-4 sm:gap-4 sm:p-5'
+          : 'p-3'
+      }`}
+    >
+      <div className={featured ? 'h-1/2 w-full shrink-0' : 'flex gap-3'}>
         <img
           src={complaint.photo_url || categoryPhoto}
           alt={categoryMeta[complaint.issue_type] || 'Civic issue'}
-          className="h-24 w-24 rounded-2xl object-cover"
+          className={featured ? 'h-full w-full rounded-2xl object-cover' : 'h-24 w-24 rounded-2xl object-cover'}
           onError={(event) => {
             const image = event.currentTarget
 
@@ -52,7 +59,7 @@ export default function ComplaintCard({ complaint }) {
           }}
         />
 
-        <div className="min-w-0 flex-1">
+        <div className={featured ? 'flex min-h-0 flex-1 flex-col justify-between gap-2 px-1 pb-1' : 'min-w-0 flex-1'}>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-[#fff8df] px-2.5 py-1 text-[11px] font-semibold text-[#8a6100]">
               {categoryMeta[complaint.issue_type] || 'Other'}
@@ -60,7 +67,9 @@ export default function ComplaintCard({ complaint }) {
             <StatusBadge status={complaint.status} />
           </div>
 
-          <p className="line-clamp-2 text-base font-semibold text-slate-900">{complaint.description}</p>
+          <p className={`font-semibold text-slate-900 ${featured ? 'line-clamp-3 text-base sm:text-lg' : 'line-clamp-2 text-base'}`}>
+            {complaint.description}
+          </p>
 
           <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500">
             <div className="flex items-center gap-1">
