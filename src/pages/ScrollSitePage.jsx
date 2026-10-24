@@ -24,7 +24,7 @@ export default function ScrollSitePage() {
         <div className="mx-auto flex max-w-[1280px] flex-col justify-between gap-10 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <div className="mb-4 flex items-center gap-3">
-              <img src="/logoo.jpeg" alt="CivicFix help desk logo" className="h-16 w-16 object-contain" />
+              <img src="/logoo.jpeg" alt="CivicFix help desk logo" className="h-10 w-10 object-contain" />
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#ffbf07]">Help desk</p>
             </div>
             <h2 className="text-3xl font-black sm:text-4xl">Need help with a civic report?</h2>

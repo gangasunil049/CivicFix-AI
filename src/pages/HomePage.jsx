@@ -10,7 +10,7 @@ export default function HomePage() {
       />
      
 <section className="relative isolate z-10 min-h-[660px] w-full overflow-hidden bg-transparent shadow-xl">
-  <div className="relative z-10 mx-auto flex min-h-[660px] w-full max-w-[1280px] flex-col justify-center px-6 py-16 sm:px-10 lg:px-12">
+  <div className="relative z-10 mx-auto flex min-h-[660px] w-full max-w-[1280px] flex-col justify-start px-6 pt-10 pb-16 sm:px-10 lg:px-12">
     <div className="w-full">
       <div className="mb-7 flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#ffbf07]">
         <span>Cleaner Streets</span>
