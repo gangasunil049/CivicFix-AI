@@ -2,17 +2,19 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile, status
 from pydantic import ValidationError
 
 from app.db import (
     append_status_history,
     fetch_complaint_by_id,
     fetch_complaints,
+    fetch_complaints_by_user_id,
     fetch_hotspots,
     fetch_stats,
     fetch_status_history,
     get_recent_nearby_complaints,
+    get_supabase_client,
     haversine_km,
     insert_complaint,
     normalize_status,
@@ -25,6 +27,29 @@ from app.services.ai_service import analyze_complaint
 from app.services.exif_service import extract_exif_details
 
 router = APIRouter(prefix='/complaints', tags=['Complaints'])
+
+
+def get_authenticated_user_id(authorization: str | None, required: bool = False) -> str | None:
+    if not authorization:
+        if required:
+            raise HTTPException(status_code=401, detail='Sign in to view your reports.')
+        return None
+
+    scheme, separator, token = authorization.partition(' ')
+    if scheme.lower() != 'bearer' or not separator or not token.strip():
+        raise HTTPException(status_code=401, detail='Invalid authorization header.')
+
+    try:
+        response = get_supabase_client().auth.get_user(token.strip())
+        user = getattr(response, 'user', None)
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail='Your session is invalid or has expired.') from exc
+
+    if not user or not getattr(user, 'id', None):
+        raise HTTPException(status_code=401, detail='Your session is invalid or has expired.')
+    if not getattr(user, 'email_confirmed_at', None):
+        raise HTTPException(status_code=403, detail='Confirm your email before accessing account features.')
+    return str(user.id)
 
 
 def format_complaint(record: dict) -> dict:
@@ -79,6 +104,7 @@ async def create_complaint(
     address: Annotated[str, Form(...)],
     location_source: Annotated[str, Form(default='manual_pin')],
     photo: UploadFile | None = File(default=None),
+    authorization: Annotated[str | None, Header()] = None,
 ):
     try:
         ComplaintCreate.model_validate({
@@ -92,6 +118,7 @@ async def create_complaint(
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=exc.errors()) from exc
 
+    user_id = get_authenticated_user_id(authorization)
     validate_image(photo)
 
     photo_url = None
@@ -123,6 +150,7 @@ async def create_complaint(
         'issue_type': issue_type,
         'description': description,
         'photo_url': photo_url,
+        'user_id': user_id,
         'latitude': float(latitude),
         'longitude': float(longitude),
         'address': address,
@@ -146,6 +174,13 @@ async def list_complaints(
     offset: int = 0,
 ):
     items = fetch_complaints(status=status, issue_type=issue_type, search=search, limit=limit, offset=offset)
+    return [format_complaint(item) for item in items]
+
+
+@router.get('/mine', response_model=list[dict])
+async def list_my_complaints(authorization: Annotated[str | None, Header()] = None):
+    user_id = get_authenticated_user_id(authorization, required=True)
+    items = fetch_complaints_by_user_id(user_id)
     return [format_complaint(item) for item in items]
 
 

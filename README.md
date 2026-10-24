@@ -26,10 +26,22 @@ Create a `.env` file in the project root:
 ```bash
 VITE_API_URL=http://localhost:5000
 VITE_USE_MOCK=true
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-publishable-or-anon-key
 ```
 
 - Set `VITE_USE_MOCK=true` to use the in-memory mock API.
 - Set `VITE_USE_MOCK=false` to point at a live backend using the same API contract.
+- Set the Supabase URL and publishable/anon key to enable email sign-up, confirmation, sign-in, and the personal dashboard. These frontend values are public; never put a service-role key in a `VITE_` variable.
+
+## Accounts and email confirmation
+
+1. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the frontend `.env` file.
+2. In Supabase Authentication settings, enable email sign-up and require email confirmation. Set the site URL to the frontend origin and allow the `/dashboard` redirect URL.
+3. Apply `backend/schema.sql` to the Supabase project to add complaint ownership and the user-scoped query index.
+4. Configure the backend `SUPABASE_URL` and `SUPABASE_KEY` separately. Keep any service-role key server-side only.
+
+Users can browse and report without an account. Signed-in reports are associated with the verified Supabase user and appear on `/dashboard`.
 
 ## Mock vs real backend
 

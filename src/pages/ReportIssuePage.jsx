@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { createComplaint } from '../api/complaints'
+import { useAuth } from '../auth/useAuth'
 import AbstractPageBackground from '../components/AbstractPageBackground'
 import AIAnalysisCard from '../components/AIAnalysisCard'
 
@@ -32,6 +33,7 @@ const initialFormState = {
 }
 
 export default function ReportIssuePage() {
+  const { session, user } = useAuth()
   const [form, setForm] = useState(initialFormState)
   const [errors, setErrors] = useState({})
   const [cameraActive, setCameraActive] = useState(false)
@@ -44,6 +46,7 @@ export default function ReportIssuePage() {
   const [locationMessage, setLocationMessage] = useState('')
   const videoRef = useRef(null)
   const streamRef = useRef(null)
+  const photoUrlRef = useRef(null)
 
   const activeIssueLabel = useMemo(
     () => issueOptions.find((option) => option.value === form.issue_type)?.label || 'Issue',
@@ -62,7 +65,7 @@ export default function ReportIssuePage() {
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop())
-      if (form.photo_url) URL.revokeObjectURL(form.photo_url)
+      if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current)
     }
   }, [])
 
@@ -175,17 +178,16 @@ export default function ReportIssuePage() {
 
       const photo = new File([blob], `civic-fix-${Date.now()}.jpg`, { type: 'image/jpeg' })
       const photoUrl = URL.createObjectURL(photo)
-      setForm((current) => {
-        if (current.photo_url) URL.revokeObjectURL(current.photo_url)
-        return {
-          ...current,
-          photo,
-          photo_url: photoUrl,
-          latitude,
-          longitude,
-          captured_at: new Date().toISOString(),
-        }
-      })
+      if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current)
+      photoUrlRef.current = photoUrl
+      setForm((current) => ({
+        ...current,
+        photo,
+        photo_url: photoUrl,
+        latitude,
+        longitude,
+        captured_at: new Date().toISOString(),
+      }))
       setPhotoLocation({ latitude, longitude, accuracy })
       setPhotoCapturedAt(new Date().toISOString())
       setErrors((current) => ({ ...current, photo: '' }))
@@ -206,7 +208,8 @@ export default function ReportIssuePage() {
   }
 
   const discardPhoto = () => {
-    if (form.photo_url) URL.revokeObjectURL(form.photo_url)
+    if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current)
+    photoUrlRef.current = null
     setForm((current) => ({
       ...current,
       photo: null,
@@ -246,9 +249,12 @@ export default function ReportIssuePage() {
         ...form,
         photo_captured_at: photoCapturedAt,
         photo_location: photoLocation,
-      })
+      }, { accessToken: session?.access_token, userId: user?.id })
       setSubmittedComplaint(createdComplaint)
-      if (form.photo_url) URL.revokeObjectURL(form.photo_url)
+      if (photoUrlRef.current && createdComplaint.photo_url !== photoUrlRef.current) {
+        URL.revokeObjectURL(photoUrlRef.current)
+        photoUrlRef.current = null
+      }
       stopCamera()
       setForm({ ...initialFormState })
       setPhotoLocation(null)
@@ -261,6 +267,12 @@ export default function ReportIssuePage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const startAnotherReport = () => {
+    if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current)
+    photoUrlRef.current = null
+    setSubmittedComplaint(null)
   }
 
   if (submittedComplaint) {
@@ -299,7 +311,7 @@ export default function ReportIssuePage() {
             </div>
             <AIAnalysisCard complaint={submittedComplaint} />
           </div>
-          <button type="button" onClick={() => setSubmittedComplaint(null)} className="rounded-full bg-[#ffbf07] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[#ffd04a]">
+          <button type="button" onClick={startAnotherReport} className="rounded-full bg-[#ffbf07] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[#ffd04a]">
             Report another issue
           </button>
         </div>

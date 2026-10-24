@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { getComplaints } from '../api/complaints'
@@ -15,6 +15,8 @@ export default function ComplaintsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [carouselPaused, setCarouselPaused] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -59,6 +61,21 @@ export default function ComplaintsPage() {
       return matchesCategory && matchesStatus && matchesSearch
     })
   }, [complaints, searchTerm, selectedCategory, selectedStatus])
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [searchTerm, selectedCategory, selectedStatus])
+
+  useEffect(() => {
+    if (filteredComplaints.length < 2 || carouselPaused) return undefined
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % filteredComplaints.length)
+    }, 5000)
+
+    return () => window.clearInterval(timer)
+  }, [filteredComplaints.length, carouselPaused])
 
   if (loading) {
     return (
@@ -134,10 +151,65 @@ export default function ComplaintsPage() {
       {error ? <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
 
       {filteredComplaints.length ? (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {filteredComplaints.map((complaint) => (
-            <ComplaintCard key={complaint.id} complaint={complaint} />
-          ))}
+        <div
+          className="mx-auto w-full max-w-4xl"
+          role="region"
+          aria-label="Community complaints carousel"
+          onMouseEnter={() => setCarouselPaused(true)}
+          onMouseLeave={(event) => {
+            if (!event.currentTarget.contains(document.activeElement)) setCarouselPaused(false)
+          }}
+          onFocus={() => setCarouselPaused(true)}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget) && !event.currentTarget.matches(':hover')) {
+              setCarouselPaused(false)
+            }
+          }}
+        >
+          <div className="overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out motion-reduce:transition-none"
+              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            >
+              {filteredComplaints.map((complaint, index) => (
+                <div
+                  key={complaint.id}
+                  className="w-full shrink-0"
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`Complaint ${index + 1} of ${filteredComplaints.length}`}
+                  aria-hidden={index !== activeIndex}
+                  inert={index !== activeIndex}
+                >
+                  <ComplaintCard complaint={complaint} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {filteredComplaints.length > 1 ? (
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => setActiveIndex((index) => (index - 1 + filteredComplaints.length) % filteredComplaints.length)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-slate-900 text-white transition hover:bg-slate-700"
+                aria-label="Show previous complaint"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <p className="text-sm font-medium text-white/80" aria-live="polite">
+                {activeIndex + 1} <span className="text-white/50">/</span> {filteredComplaints.length}
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveIndex((index) => (index + 1) % filteredComplaints.length)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-slate-900 text-white transition hover:bg-slate-700"
+                aria-label="Show next complaint"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">

@@ -99,6 +99,12 @@ def fetch_complaints(status: str | None = None, issue_type: str | None = None, s
     return items[offset:offset + limit]
 
 
+def fetch_complaints_by_user_id(user_id: str) -> list[dict]:
+    client = get_supabase_client()
+    rows = client.table('complaints').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+    return rows.data if rows and getattr(rows, 'data', None) else []
+
+
 def fetch_complaint_by_id(complaint_id: str) -> dict | None:
     client = get_supabase_client()
     rows = client.table('complaints').select('*').eq('id', complaint_id).limit(1).execute()

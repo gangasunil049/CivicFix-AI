@@ -365,6 +365,23 @@ export const getComplaints = async () => {
   return response.json()
 }
 
+export const getMyComplaints = async (accessToken, userId) => {
+  const useMock = String(import.meta.env.VITE_USE_MOCK ?? 'true').toLowerCase() === 'true'
+
+  if (useMock) {
+    return mockComplaints.filter((complaint) => complaint.user_id === userId)
+  }
+
+  if (!accessToken) throw new Error('Your session has expired. Please sign in again.')
+
+  const response = await fetch(`${getBaseUrl()}/complaints/mine`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  if (!response.ok) throw new Error('Unable to load your reports right now.')
+  return response.json()
+}
+
 export const getComplaintById = async (id) => {
   const useMock = String(import.meta.env.VITE_USE_MOCK ?? 'true').toLowerCase() === 'true'
 
@@ -385,7 +402,7 @@ export const getComplaintById = async (id) => {
   return response.json()
 }
 
-export const createComplaint = async (formData) => {
+export const createComplaint = async (formData, { accessToken, userId } = {}) => {
   const useMock = String(import.meta.env.VITE_USE_MOCK ?? 'true').toLowerCase() === 'true'
 
   if (useMock) {
@@ -397,6 +414,7 @@ export const createComplaint = async (formData) => {
       issue_type: normalizedIssueType,
       description: String(formData.description || '').trim(),
       photo_url: formData.photo_url || null,
+      user_id: userId || null,
       latitude: Number(formData.latitude),
       longitude: Number(formData.longitude),
       address: String(formData.address || 'Location unavailable').trim() || 'Location unavailable',
@@ -427,6 +445,7 @@ export const createComplaint = async (formData) => {
 
   const response = await fetch(`${getBaseUrl()}/complaints`, {
     method: 'POST',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     body: form,
   })
 

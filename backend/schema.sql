@@ -14,6 +14,9 @@ create table if not exists complaints (
   ai jsonb not null default '{}'::jsonb
 );
 
+alter table complaints
+  add column if not exists user_id uuid references auth.users(id) on delete set null;
+
 create table if not exists status_history (
   id uuid primary key default gen_random_uuid(),
   complaint_id uuid not null references complaints(id) on delete cascade,
@@ -25,6 +28,7 @@ create table if not exists status_history (
 create index if not exists idx_complaints_status on complaints(status);
 create index if not exists idx_complaints_issue_type on complaints(issue_type);
 create index if not exists idx_complaints_created_at on complaints(created_at desc);
+create index if not exists idx_complaints_user_id on complaints(user_id);
 
 create index if not exists idx_status_history_complaint_id on status_history(complaint_id);
 
@@ -32,9 +36,10 @@ create policy "Allow public read access for complaints"
   on complaints for select
   using (true);
 
+drop policy if exists "Allow public insert access for complaints" on complaints;
 create policy "Allow public insert access for complaints"
   on complaints for insert
-  with check (true);
+  with check (user_id is null or user_id = auth.uid());
 
 create policy "Allow public update access for complaints"
   on complaints for update
