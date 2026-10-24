@@ -16,10 +16,10 @@ export default function Navbar() {
   const isActive = (section) => pathname === '/' && (hash ? hash === `#${section}` : section === 'home-section')
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0d1116] text-white shadow-sm">
-      <nav className="mx-auto flex max-w-[1360px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link to="/" className="flex shrink-0 items-center" aria-label="CivicFix home">
-          <img src="/civicfix-logo.svg" alt="CivicFix" className="h-10 w-[180px] object-contain" />
+    <header className="sticky top-0 z-50 bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80">
+      <nav className="mx-auto flex w-full max-w-[1360px] items-center justify-between px-0 py-2 sm:px-0 lg:px-0">
+        <Link to="/" className="ml-0 flex shrink-0 items-center self-start" aria-label="CivicFix home">
+          <img src="/logoo.jpeg" alt="CivicFix logo" className="h-16 w-[300px] object-contain md:h-20 md:w-[340px]" />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
@@ -28,7 +28,7 @@ export default function Navbar() {
               key={item.to}
               to={item.to}
               className={`relative px-1 py-2 text-sm font-medium transition ${
-                isActive(item.section) ? 'text-[#ffbf07]' : 'text-white/80 hover:text-white'
+                isActive(item.section) ? 'text-[#ffbf07]' : 'text-slate-700 hover:text-slate-900'
               }`}
             >
               {item.label}
@@ -39,7 +39,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-full border border-white/10 p-2 text-white md:hidden"
+          className="inline-flex items-center justify-center rounded-full border border-slate-200 p-2 text-slate-800 md:hidden"
           onClick={() => setMobileOpen((current) => !current)}
           aria-label="Toggle navigation"
         >
@@ -48,7 +48,7 @@ export default function Navbar() {
       </nav>
 
       {mobileOpen ? (
-        <div className="border-t border-white/10 bg-[#0d1116] md:hidden">
+        <div className="border-t border-slate-200 bg-white md:hidden">
           <div className="mx-auto flex max-w-[1360px] flex-col px-4 py-3">
             {navItems.map((item) => (
               <Link
@@ -56,7 +56,7 @@ export default function Navbar() {
                 to={item.to}
                 onClick={() => setMobileOpen(false)}
                 className={`rounded-xl px-3 py-2 text-sm font-medium ${
-                  isActive(item.section) ? 'bg-white/5 text-[#ffbf07]' : 'text-white/80'
+                  isActive(item.section) ? 'bg-amber-50 text-[#ffbf07]' : 'text-slate-700'
                 }`}
               >
                 {item.label}

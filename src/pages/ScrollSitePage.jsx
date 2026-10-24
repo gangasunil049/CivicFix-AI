@@ -23,8 +23,11 @@ export default function ScrollSitePage() {
       <section id="help-section" className="scroll-mt-16 bg-[#17232c] px-6 py-20 text-white sm:px-10 lg:px-12">
         <div className="mx-auto flex max-w-[1280px] flex-col justify-between gap-10 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#ffbf07]">Help desk</p>
-            <h2 className="mt-3 text-3xl font-black sm:text-4xl">Need help with a civic report?</h2>
+            <div className="mb-4 flex items-center gap-3">
+              <img src="/logoo.jpeg" alt="CivicFix help desk logo" className="h-16 w-16 object-contain" />
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#ffbf07]">Help desk</p>
+            </div>
+            <h2 className="text-3xl font-black sm:text-4xl">Need help with a civic report?</h2>
             <p className="mt-4 max-w-xl text-base leading-7 text-white/75">
               Review community reports or send in an issue with its location and details.
             </p>

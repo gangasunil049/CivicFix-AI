@@ -35,7 +35,7 @@ export default function HomePage() {
       {/* Large action cards */}
       <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
         <Link
-          to="/#report-section"
+          to="/report"
           className="group flex min-h-[150px] items-center justify-between gap-4 rounded-2xl bg-[#ffbf07] p-5 text-slate-900 shadow-xl transition duration-300 hover:-translate-y-1 hover:bg-[#ffd04a] sm:p-6"
         >
           <div className="flex items-center gap-4">
