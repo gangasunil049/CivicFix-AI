@@ -17,9 +17,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0d1116] text-white shadow-sm">
-      <nav className="mx-auto flex max-w-[1360px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link to="/" className="flex shrink-0 items-center" aria-label="CivicFix home">
-          <img src="/civicfix-logo.svg" alt="CivicFix" className="h-10 w-[180px] object-contain" />
+      <nav className="mx-auto flex w-full max-w-[1360px] items-center justify-between px-0 py-2 sm:px-0 lg:px-0">
+        <Link to="/" className="ml-0 flex shrink-0 items-center self-start" aria-label="CivicFix home">
+          <img src="/logoo.jpeg" alt="CivicFix logo" className="h-16 w-[300px] object-contain md:h-20 md:w-[340px]" />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
