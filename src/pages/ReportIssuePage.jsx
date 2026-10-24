@@ -61,13 +61,13 @@ useEffect(() => {
   const validateForm = () => {
     const nextErrors = {}
 
-    if (!form.description.trim()) {
-      nextErrors.description = 'Please describe the civic issue in a few words.'
-    }
+    if (!form.photo) {
+    nextErrors.photo = 'Please capture a photo using the camera.'
+  }
 
-    if (!form.address.trim()) {
-      nextErrors.address = 'Please add an address or nearby landmark.'
-    }
+  if (!photoLocation) {
+    nextErrors.photo = 'A photo with GPS location is required.'
+  }
 
     return nextErrors
   }
@@ -124,6 +124,21 @@ const capturePhoto = () => {
     setCameraError('Please wait for the camera preview to load.')
     return
   }
+
+const discardPhoto = () => {
+  if (form.photo_url) {
+    URL.revokeObjectURL(form.photo_url)
+  }
+
+  setForm((current) => ({
+    ...current,
+    photo: null,
+    photo_url: null
+  }))
+
+  setPhotoLocation(null)
+  setPhotoCapturedAt(null)
+}
 
   setCameraError('')
 
@@ -302,19 +317,113 @@ const capturePhoto = () => {
           {errors.description ? <p className="mt-1 text-sm text-red-600">{errors.description}</p> : null}
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Photo upload</label>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#ffbf07] hover:bg-[#fff8df] hover:text-slate-900">
-              <ImageIcon className="h-4 w-4" />
-              Add photo
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-            </label>
+<div className="space-y-3">
+  <label className="mb-2 block text-sm font-medium text-slate-700">
+    Capture issue photo
+  </label>
 
-            {form.photo_url ? (
-              <img src={form.photo_url} alt="Selected preview" className="h-20 w-20 rounded-2xl object-cover" />
-            ) : null}
-          </div>
+  <p className="text-sm text-slate-500">
+    Take a fresh photo of the civic issue. Gallery uploads are not available.
+  </p>
+
+  {!cameraActive && !form.photo_url && (
+    <button
+      type="button"
+      onClick={startCamera}
+      className="inline-flex items-center gap-2 rounded-full bg-[#ffbf07] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[#ffd04a]"
+    >
+      <Camera className="h-5 w-5" />
+      Open camera
+    </button>
+  )}
+
+  {cameraActive && (
+    <div className="space-y-3">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="w-full max-w-lg rounded-2xl bg-black"
+      />
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={capturePhoto}
+          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+        >
+          <Camera className="h-4 w-4" />
+          Capture photo and GPS
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            streamRef.current?.getTracks().forEach((track) => track.stop())
+            streamRef.current = null
+            setCameraActive(false)
+          }}
+          className="rounded-full border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
+
+  {form.photo_url && (
+    <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+      <img
+        src={form.photo_url}
+        alt="Newly captured civic issue"
+        className="h-56 w-full max-w-lg rounded-2xl object-cover"
+      />
+
+      <p className="flex items-center gap-2 text-sm font-medium text-emerald-800">
+        <MapPin className="h-4 w-4" />
+        GPS location captured
+      </p>
+
+      <p className="text-xs text-slate-600">
+        Latitude: {photoLocation?.latitude.toFixed(6)} ·
+        Longitude: {photoLocation?.longitude.toFixed(6)}
+      </p>
+
+      <p className="text-xs text-slate-600">
+        GPS accuracy: {photoLocation?.accuracy
+          ? `approximately ${Math.round(photoLocation.accuracy)} metres`
+          : 'unavailable'}
+      </p>
+
+      <p className="text-xs text-slate-600">
+        Captured: {photoCapturedAt
+          ? new Date(photoCapturedAt).toLocaleString()
+          : 'unavailable'}
+      </p>
+
+      <button
+        type="button"
+        onClick={discardPhoto}
+        className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+      >
+        <RefreshCw className="h-4 w-4" />
+        Retake photo
+      </button>
+    </div>
+  )}
+
+  {cameraError && (
+    <p role="alert" className="text-sm text-red-600">
+      {cameraError}
+    </p>
+  )}
+
+  {errors.photo && (
+    <p className="text-sm text-red-600">{errors.photo}</p>
+  )}
+</div>
+
         </div>
 
         <div>
