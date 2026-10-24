@@ -13,6 +13,15 @@ const categoryMeta = {
   other: 'Other'
 }
 
+const categoryPhotos = {
+  pothole: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
+  blocked_drain: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80',
+  garbage: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80',
+  broken_streetlight: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=800&q=80',
+  water_leakage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
+  other: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80'
+}
+
 function formatDate(value) {
   return new Date(value).toLocaleString('en-IN', {
     dateStyle: 'medium',
@@ -21,13 +30,26 @@ function formatDate(value) {
 }
 
 export default function ComplaintCard({ complaint }) {
+  const categoryPhoto = categoryPhotos[complaint.issue_type] || categoryPhotos.other
+
   return (
     <Link to={`/complaints/${complaint.id}`} className="block rounded-3xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex gap-3">
         <img
-          src={complaint.photo_url || 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=800&q=80'}
+          src={complaint.photo_url || categoryPhoto}
           alt={categoryMeta[complaint.issue_type] || 'Civic issue'}
           className="h-24 w-24 rounded-2xl object-cover"
+          onError={(event) => {
+            const image = event.currentTarget
+
+            if (image.dataset.fallback !== 'applied') {
+              image.dataset.fallback = 'applied'
+              image.src = categoryPhoto
+            } else {
+              image.onerror = null
+              image.src = '/images/civicfix-homepage.jpg'
+            }
+          }}
         />
 
         <div className="min-w-0 flex-1">

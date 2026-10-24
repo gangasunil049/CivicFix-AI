@@ -1,5 +1,14 @@
-import { ImageIcon, LoaderCircle, Send, Sparkles } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  ImageIcon,
+  LoaderCircle,
+  Send,
+  Sparkles,
+  Camera,
+  X,
+  RefreshCw,
+} from 'lucide-react'
+
+import { useEffect, useRef, useState } from 'react'
 
 import { createComplaint } from '../api/complaints'
 import AbstractPageBackground from '../components/AbstractPageBackground'
@@ -17,23 +26,26 @@ const issueOptions = [
 const initialFormState = {
   issue_type: 'pothole',
   description: '',
-  address: 'Mangaluru, Karnataka',
-  latitude: 12.9141,
-  longitude: 74.8560,
+  address: '',
+  latitude: null,
+  longitude: null,
   photo: null,
-  photo_url: null
+  photo_url: null,
+  captured_at: null
 }
-
 export default function ReportIssuePage() {
   const [form, setForm] = useState(initialFormState)
   const [errors, setErrors] = useState({})
+  const [cameraOpen, setCameraOpen] = useState(false)
+const [cameraError, setCameraError] = useState('')
+const [isCapturing, setIsCapturing] = useState(false)
+
+const videoRef = useRef(null)
+const streamRef = useRef(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedComplaint, setSubmittedComplaint] = useState(null)
-
-  const activeIssueLabel = useMemo(
-    () => issueOptions.find((option) => option.value === form.issue_type)?.label || 'Issue',
-    [form.issue_type]
-  )
+  const [isLocating, setIsLocating] = useState(false)
+const [locationMessage, setLocationMessage] = useState('')
 
   const validateForm = () => {
     const nextErrors = {}
@@ -55,21 +67,254 @@ export default function ReportIssuePage() {
     setErrors((current) => ({ ...current, [name]: '' }))
   }
 
-  const handleLocationChange = ({ latitude, longitude }) => {
-    setForm((current) => ({ ...current, latitude, longitude }))
-    setErrors((current) => ({ ...current, latitude: '', longitude: '' }))
+  const detectCurrentLocation = () => {
+if (!navigator.geolocation) {
+setLocationMessage('Location detection is not supported by this browser.')
+return
+}
+
+setIsLocating(true)
+setLocationMessage('Getting your most accurate location...')
+
+navigator.geolocation.getCurrentPosition(
+async (position) => {
+const { latitude, longitude, accuracy } = position.coords
+
+
+  // Reject GPS readings that are too inaccurate.
+  if (accuracy > 150) {
+    setLocationMessage(
+      `Location accuracy is approximately ${Math.round(accuracy)} metres. Move to an open area and try again.`
+    )
+    setIsLocating(false)
+    return
   }
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  // Save the GPS coordinates.
+  setForm((current) => ({
+    ...current,
+    latitude,
+    longitude
+  }))
+
+  setLocationMessage(
+    `GPS detected. Accuracy: approximately ${Math.round(accuracy)} metres. Finding address...`
+  )
+
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2` +
+      `&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error('Address lookup failed')
+    }
+
+    const data = await response.json()
+
+    if (!data.display_name) {
+      throw new Error('No address found')
+    }
 
     setForm((current) => ({
       ...current,
-      photo: file,
-      photo_url: URL.createObjectURL(file)
+      latitude,
+      longitude,
+      address: data.display_name
     }))
+
+    setLocationMessage(
+      `Address detected. GPS accuracy: approximately ${Math.round(accuracy)} metres.`
+    )
+  } catch {
+    setLocationMessage(
+      'GPS detected, but the address lookup failed. Please try again or enter the address manually.'
+    )
+  } finally {
+    setIsLocating(false)
   }
+},
+(error) => {
+  let message = 'Unable to detect your location. Please try again.'
+
+  if (error.code === 1) {
+    message = 'Please allow location permission in your browser.'
+  } else if (error.code === 2) {
+    message = 'Location unavailable. Check your device location settings.'
+  } else if (error.code === 3) {
+    message = 'Location request timed out. Please try again.'
+  }
+
+  setLocationMessage(message)
+  setIsLocating(false)
+},
+{
+  enableHighAccuracy: true,
+  timeout: 30000,
+  maximumAge: 0
+}
+
+
+)
+}
+
+
+// Stop the camera and release the device.
+const stopCamera = () => {
+  if (streamRef.current) {
+    streamRef.current.getTracks().forEach((track) => {
+      track.stop()
+    })
+
+    streamRef.current = null
+  }
+
+  if (videoRef.current) {
+    videoRef.current.srcObject = null
+  }
+
+  setCameraOpen(false)
+}
+
+// Open the live camera.
+const startCamera = async () => {
+  setCameraError('')
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setCameraError(
+      'Camera access is unavailable. Please use HTTPS or localhost and a supported browser.'
+    )
+    return
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+      },
+      audio: false,
+    })
+
+    streamRef.current = stream
+    setCameraOpen(true)
+  } catch (error) {
+    let message = 'Unable to open the camera. Please try again.'
+
+    if (
+      error.name === 'NotAllowedError' ||
+      error.name === 'PermissionDeniedError'
+    ) {
+      message =
+        'Camera permission was denied. Please allow camera access in your browser settings.'
+    } else if (error.name === 'NotFoundError') {
+      message = 'No camera was found on this device.'
+    } else if (error.name === 'NotReadableError') {
+      message =
+        'The camera may already be in use by another application.'
+    }
+
+    setCameraError(message)
+  }
+}
+
+// Connect the camera stream to the live video preview.
+useEffect(() => {
+  if (!cameraOpen || !videoRef.current || !streamRef.current) {
+    return
+  }
+
+  const video = videoRef.current
+  video.srcObject = streamRef.current
+
+  video.play().catch(() => {
+    setCameraError(
+      'Unable to start the camera preview. Please check camera permissions.'
+    )
+  })
+}, [cameraOpen])
+
+// Capture a photo directly from the live camera.
+const capturePhoto = async () => {
+  const video = videoRef.current
+
+  if (!video || !video.videoWidth || !video.videoHeight) {
+    setCameraError('The camera is not ready yet. Please wait a moment.')
+    return
+  }
+
+  setIsCapturing(true)
+  setCameraError('')
+
+  try {
+    const canvas = document.createElement('canvas')
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+      throw new Error('Unable to capture the photo.')
+    }
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (result) {
+            resolve(result)
+          } else {
+            reject(new Error('Could not create the captured photo.'))
+          }
+        },
+        'image/jpeg',
+        0.9
+      )
+    })
+
+    const photo = new File(
+      [blob],
+      `civic-fix-${Date.now()}.jpg`,
+      { type: 'image/jpeg' }
+    )
+
+    const photoUrl = URL.createObjectURL(photo)
+
+    setForm((current) => {
+      if (current.photo_url) {
+        URL.revokeObjectURL(current.photo_url)
+      }
+
+      return {
+        ...current,
+        photo,
+        photo_url: photoUrl,
+        captured_at: new Date().toISOString(),
+      }
+    })
+
+    stopCamera()
+    detectCurrentLocation()
+  } catch (error) {
+    setCameraError(error.message || 'Failed to capture the photo.')
+  } finally {
+    setIsCapturing(false)
+  }
+}
+
+// Release the camera when the component is removed.
+useEffect(() => {
+  return () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop()
+      })
+    }
+  }
+}, [])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -152,7 +397,7 @@ export default function ReportIssuePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5">
           <div>
             <label htmlFor="issue_type" className="mb-2 block text-sm font-medium text-slate-700">
               Issue type
@@ -170,10 +415,6 @@ export default function ReportIssuePage() {
             </select>
           </div>
 
-          <div className="rounded-2xl bg-[#fff8df] p-4 text-sm text-[#8a6100] ring-1 ring-[#ffbf07]/40">
-            <div className="font-semibold">AI category</div>
-            <div className="mt-1 text-base font-bold">{activeIssueLabel}</div>
-          </div>
         </div>
 
         <div>
@@ -192,20 +433,65 @@ export default function ReportIssuePage() {
           {errors.description ? <p className="mt-1 text-sm text-red-600">{errors.description}</p> : null}
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Photo upload</label>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#ffbf07] hover:bg-[#fff8df] hover:text-slate-900">
-              <ImageIcon className="h-4 w-4" />
-              Add photo
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-            </label>
+      <div>
+  <label className="mb-2 block text-sm font-medium text-slate-700">
+    Evidence Photo
+  </label>
 
-            {form.photo_url ? (
-              <img src={form.photo_url} alt="Selected preview" className="h-20 w-20 rounded-2xl object-cover" />
-            ) : null}
-          </div>
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <button
+      type="button"
+      onClick={startCamera}
+      className="inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-[#ffbf07] hover:bg-[#fff8df]"
+    >
+      {form.photo ? (
+        <RefreshCw className="h-4 w-4" />
+      ) : (
+        <Camera className="h-4 w-4" />
+      )}
+
+      {form.photo ? 'Retake Photo' : 'Open Camera'}
+    </button>
+
+    {form.photo_url && (
+      <div className="flex items-center gap-3">
+        <img
+          src={form.photo_url}
+          alt="Captured civic issue evidence"
+          className="h-24 w-24 rounded-2xl border border-slate-200 object-cover"
+        />
+
+        <div>
+          <p className="text-sm font-semibold text-emerald-700">
+            Photo captured successfully
+          </p>
+
+          <p className="mt-1 text-xs text-slate-500">
+            {form.captured_at
+              ? new Date(form.captured_at).toLocaleString()
+              : ''}
+          </p>
         </div>
+      </div>
+    )}
+  </div>
+
+  {errors.photo && (
+    <p className="mt-1 text-sm text-red-600">
+      {errors.photo}
+    </p>
+  )}
+
+  {cameraError && (
+    <p className="mt-2 text-sm text-red-600">
+      {cameraError}
+    </p>
+  )}
+
+  <p className="mt-2 text-xs text-slate-500">
+    Capture a photo of the civic issue using your device camera.
+  </p>
+</div>
 
         <div>
           <label htmlFor="address" className="mb-2 block text-sm font-medium text-slate-700">
@@ -222,6 +508,46 @@ export default function ReportIssuePage() {
           />
           {errors.address ? <p className="mt-1 text-sm text-red-600">{errors.address}</p> : null}
         </div>
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+  <div className="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p className="text-sm font-semibold text-slate-800">
+        📍 Current GPS Location
+      </p>
+
+      <p className="mt-1 text-xs text-slate-500">
+        {locationMessage || 'Capture a photo to detect your location automatically.'}
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={detectCurrentLocation}
+      disabled={isLocating}
+      className="rounded-full bg-[#ffbf07] px-4 py-2 text-sm font-semibold text-slate-900 disabled:opacity-60"
+    >
+      {isLocating ? 'Detecting...' : 'Detect Location'}
+    </button>
+  </div>
+
+  {form.latitude !== null && form.longitude !== null && (
+    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="rounded-xl bg-white p-3">
+        <p className="text-xs text-slate-500">Latitude</p>
+        <p className="mt-1 text-sm font-medium text-slate-800">
+          {form.latitude}
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-white p-3">
+        <p className="text-xs text-slate-500">Longitude</p>
+        <p className="mt-1 text-sm font-medium text-slate-800">
+          {form.longitude}
+        </p>
+      </div>
+    </div>
+  )}
+</div>
         {errors.submit ? <div className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">{errors.submit}</div> : null}
 
         <button
@@ -241,7 +567,79 @@ export default function ReportIssuePage() {
             </>
           )}
         </button>
-      </form>
+           </form>
+
+      {cameraOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+          <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 p-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  Capture Evidence
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Point the camera at the civic issue.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="rounded-full p-2 text-slate-600 hover:bg-slate-100"
+                aria-label="Close camera"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="bg-black">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="max-h-[65vh] min-h-64 w-full object-contain"
+              />
+            </div>
+
+            {cameraError && (
+              <p className="px-4 pt-3 text-sm text-red-600">
+                {cameraError}
+              </p>
+            )}
+
+            <div className="flex justify-center gap-3 p-5">
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="rounded-full border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={capturePhoto}
+                disabled={isCapturing}
+                className="inline-flex items-center gap-2 rounded-full bg-[#ffbf07] px-6 py-3 text-sm font-semibold text-slate-900 disabled:opacity-60"
+              >
+                {isCapturing ? (
+                  <>
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                    Capturing...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-4 w-4" />
+                    Take Photo
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       </div>
     </AbstractPageBackground>
   )
